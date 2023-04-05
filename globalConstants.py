@@ -8,5 +8,6 @@ class GlobalConstants():
     controllerAddCategory="#operations-categories-controller-addCategory .opblock-summary-control"
     controllerGetCategories="#operations-categories-controller-getAll_1 .opblock-summary-control"
     controllerDeleteCategories="#operations-categories-controller-deleteAll_1 .opblock-summary-control"
+    controllerUpdateCategory="#operations-categories-controller-updateCategory .opblock-summary-control"
     
     

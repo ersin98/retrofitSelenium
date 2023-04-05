@@ -19,6 +19,8 @@ from selenium.webdriver.support.expected_conditions import staleness_of
 from globalConstants import GlobalConstants as GC
 
 class Test_Localhost:
+    vars = {}
+    idNumber="0"
     def setup_method(self):
         self.driver = webdriver.Chrome(ChromeDriverManager().install())
         self.driver.maximize_window()
@@ -27,13 +29,9 @@ class Test_Localhost:
         self.testTime=str(now.strftime("%H.%M")) #.%S
         Path(self.folderPath).mkdir(exist_ok=True)
         self.driver.get("http://localhost:8080/swagger-ui/index.html#/")
-        self.vars = {}
     def teardown_method(self):
-        self.vars = {}
+        self.vars = {}#sadece test bitiminde sıfırlanır metot bitiminde değil
         self.driver.quit()
-
-
-        
 
     def errormessage(self):
         self.driver.get("https://translate.google.com/?hl=tr")
@@ -76,6 +74,10 @@ class Test_Localhost:
     def waitForElementVisible(self,locator,timeout=10):
         WebDriverWait(self.driver,timeout).until(ec.visibility_of_element_located(locator))
 
+    def getId(self):#self.vars["id"]
+        self.vars["id"]= self.driver.find_element(By.CSS_SELECTOR, ".microlight:nth-child(3) span:nth-child(5)").text
+        self.idNumber= self.vars["id"]#int e çevirmek zorunlu
+        
 
 #Controller
     def startController(self,opblockSummaryControl):
@@ -90,13 +92,18 @@ class Test_Localhost:
         bodyParam.click()
         bodyParam.clear()
         bodyParam.send_keys(keys)
+        self.waitForElementVisible((By.CSS_SELECTOR, ".execute"))
         self.driver.find_element(By.CSS_SELECTOR, ".execute").click()
 
     def tryController(self):
+        self.waitForElementVisible((By.CSS_SELECTOR, ".execute"))
         self.driver.find_element(By.CSS_SELECTOR, ".execute").click()
 
     def stopController(self,opblockSummaryControl):
         self.waitForElementVisible((By.CSS_SELECTOR, opblockSummaryControl))
+        self.waitForElementVisible((By.CSS_SELECTOR, ".btn-clear"))
+        self.waitForElementVisible((By.CSS_SELECTOR, ".btn"))
+
         self.driver.find_element(By.CSS_SELECTOR, ".btn-clear").click()
         self.driver.find_element(By.CSS_SELECTOR, ".btn").click()
         self.driver.find_element(By.CSS_SELECTOR, opblockSummaryControl).click()
@@ -105,6 +112,7 @@ class Test_Localhost:
             functions = (functions,)
             return functions
         return functions
+
 
 
 
@@ -186,5 +194,16 @@ class Test_Localhost:
             lambda:self.result(GC.ok),
             lambda:self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-retrofitSelenium-getCategories.png")
         ))
-        
+    #@pytest.mark.skip()
+    def test_updateCategories(self):
+        self.deleteCategories(())
+        self.addCategory(())
+        self.getCategories((
+            lambda: self.getId()
+        ))
+        self.startController(GC.controllerUpdateCategory)
+        self.tryControllerWithArgument("{"+f"\"id\": {self.idNumber},\"name\": \"lülülü\""+"}")
+        self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-retrofitSelenium-updateCategories.png")
+        self.result(GC.ok)
+        self.stopController(GC.controllerUpdateCategory)
     
