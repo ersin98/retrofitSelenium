@@ -76,7 +76,7 @@ class Test_Localhost:
 
     def getId(self):#self.vars["id"]
         self.vars["id"]= self.driver.find_element(By.CSS_SELECTOR, ".microlight:nth-child(3) span:nth-child(5)").text
-        self.idNumber= self.vars["id"]#int e çevirmek zorunlu
+        self.idNumber= self.vars["id"]
         
 
 #Controller
@@ -86,9 +86,9 @@ class Test_Localhost:
         self.waitForElementVisible((By.CSS_SELECTOR, ".try-out__btn"))
         self.driver.find_element(By.CSS_SELECTOR, ".try-out__btn").click()
 
-    def tryControllerWithArgument(self,keys):
-        self.waitForElementVisible((By.CSS_SELECTOR, ".body-param__text"))
-        bodyParam = self.driver.find_element(By.CSS_SELECTOR, ".body-param__text")
+    def tryControllerWithArgument(self,keys,field):
+        self.waitForElementVisible((By.CSS_SELECTOR, field))
+        bodyParam = self.driver.find_element(By.CSS_SELECTOR, field)
         bodyParam.click()
         bodyParam.clear()
         bodyParam.send_keys(keys)
@@ -112,6 +112,12 @@ class Test_Localhost:
             functions = (functions,)
             return functions
         return functions
+    def makeIdNumber(self):
+        self.deleteCategories(())
+        self.addCategory(())
+        self.getCategories((
+            lambda: self.getId()
+        ))
 
 
 
@@ -130,7 +136,7 @@ class Test_Localhost:
     def addCategory(self,functions):
         functions = self.callable(functions)
         self.startController(GC.controllerAddCategory)
-        self.tryControllerWithArgument("{\"name\":\"example\"}")
+        self.tryControllerWithArgument("{\"name\":\"example\"}",GC.controllerbody)
         for function in functions:
             function()
         self.stopController(GC.controllerAddCategory)
@@ -144,6 +150,9 @@ class Test_Localhost:
         self.stopController(GC.controllerGetCategories)
 
     
+
+
+
 
 
 
@@ -176,7 +185,7 @@ class Test_Localhost:
     def test_addCategory_invalid(self,name):
         self.deleteCategories(())
         self.startController(GC.controllerAddCategory)
-        self.tryControllerWithArgument("{"+ f"\"name\":\"{name}\""+"}")
+        self.tryControllerWithArgument("{"+ f"\"name\":\"{name}\""+"}",GC.controllerbody)
         self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-retrofitSelenium-addCategory-invalid.png")
         self.result(GC.badRequest)
         self.stopController(GC.controllerAddCategory)
@@ -189,21 +198,28 @@ class Test_Localhost:
             lambda:self.result(GC.badRequest)
             )
         )
+        self.deleteCategories(())
     def test_getCategories(self):
         self.getCategories((
             lambda:self.result(GC.ok),
             lambda:self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-retrofitSelenium-getCategories.png")
         ))
     #@pytest.mark.skip()
-    def test_updateCategories(self):
-        self.deleteCategories(())
-        self.addCategory(())
-        self.getCategories((
-            lambda: self.getId()
-        ))
+    def test_updateCategory(self):
+        self.makeIdNumber()
         self.startController(GC.controllerUpdateCategory)
-        self.tryControllerWithArgument("{"+f"\"id\": {self.idNumber},\"name\": \"lülülü\""+"}")
+        self.tryControllerWithArgument("{"+f"\"id\": {self.idNumber},\"name\": \"example\""+"}",GC.controllerbody)
         self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-retrofitSelenium-updateCategories.png")
         self.result(GC.ok)
         self.stopController(GC.controllerUpdateCategory)
+        self.deleteCategories(())
+    
+    def test_deleteCategory(self):
+        self.makeIdNumber()
+        self.startController(GC.controllerDeleteCategory)
+        self.tryControllerWithArgument(self.idNumber,GC.controllerparameters)
+        self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-retrofitSelenium-updateCategories.png")
+        self.result(GC.ok)
+        self.stopController(GC.controllerDeleteCategory)
+        self.deleteCategories(())
     
