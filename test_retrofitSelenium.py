@@ -34,19 +34,10 @@ class Test_Localhost:
         self.driver.quit()
 
     def errormessage(self):
-        self.driver.get("https://translate.google.com/?hl=tr")
-        self.page_loaded()
-        self.driver.find_element(By.CSS_SELECTOR, ".MOkH4e").click()
-        self.driver.find_element(By.CSS_SELECTOR, ".er8xn").click()
-        self.driver.find_element(By.CSS_SELECTOR, ".er8xn").click()
-        self.driver.find_element(By.CSS_SELECTOR, ".QFw9Te").click()
-        self.driver.find_element(By.CSS_SELECTOR, ".er8xn").send_keys(self.vars["message"])
-        self.driver.find_element(By.CSS_SELECTOR, ".MOkH4e").click()
-        sleep(1)
-        self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-sauce-çeviri.png")
-    def çeviri(self):
-        self.vars["message"] = self.driver.find_element(By.CSS_SELECTOR, ".microlight:nth-child(3) .hljs-attr").text
-        self.errormessage
+        self.waitForElementVisible((By.CSS_SELECTOR, ".microlight:nth-child(3) span:nth-child(5)"))
+        errormessage = self.driver.find_element(By.CSS_SELECTOR, ".microlight:nth-child(3) span:nth-child(5)")
+        assert errormessage.text =="\"Category name already exists\""
+
     def page_loaded(self):
         old_page = self.driver.find_element_by_tag_name('html')
         yield
@@ -77,6 +68,8 @@ class Test_Localhost:
     def getId(self):#self.vars["id"]
         self.vars["id"]= self.driver.find_element(By.CSS_SELECTOR, ".microlight:nth-child(3) span:nth-child(5)").text
         self.idNumber= self.vars["id"]
+        
+    
         
 
 #Controller
@@ -188,6 +181,7 @@ class Test_Localhost:
         self.tryControllerWithArgument("{"+ f"\"name\":\"{name}\""+"}",GC.controllerbody)
         self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-retrofitSelenium-addCategory-invalid.png")
         self.result(GC.badRequest)
+
         self.stopController(GC.controllerAddCategory)
 
     def test_addCategory_repeat(self):
@@ -195,10 +189,13 @@ class Test_Localhost:
         self.addCategory(())
         self.addCategory(
             (
-            lambda:self.result(GC.badRequest)
+            lambda:self.result(GC.badRequest),
+            lambda:self.errormessage(),
+            lambda:self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-retrofitSelenium-addCategory-Repeat.png"),
             )
         )
         self.deleteCategories(())
+
     def test_getCategories(self):
         self.getCategories((
             lambda:self.result(GC.ok),
