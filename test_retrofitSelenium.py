@@ -222,4 +222,3 @@ class Test_Localhost:
         self.result(GC.ok)
         self.stopController(GC.controllerDeleteCategory)
         self.deleteCategories(())
-    
