@@ -33,10 +33,10 @@ class Test_Localhost:
         self.vars = {}#sadece test bitiminde sıfırlanır metot bitiminde değil
         self.driver.quit()
 
-    def errormessage(self):
-        self.waitForElementVisible((By.CSS_SELECTOR, ".microlight:nth-child(3) span:nth-child(5)"))
-        errormessage = self.driver.find_element(By.CSS_SELECTOR, ".microlight:nth-child(3) span:nth-child(5)")
-        assert errormessage.text =="\"Category name already exists\""
+    def errormessage(self,text,position):
+        self.waitForElementVisible((By.CSS_SELECTOR, position))
+        errormessage = self.driver.find_element(By.CSS_SELECTOR,position)
+        assert errormessage.text == f"\"{text}\"" 
 
     def page_loaded(self):
         old_page = self.driver.find_element_by_tag_name('html')
@@ -181,7 +181,7 @@ class Test_Localhost:
         self.tryControllerWithArgument("{"+ f"\"name\":\"{name}\""+"}",GC.controllerbody)
         self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-retrofitSelenium-addCategory-invalid.png")
         self.result(GC.badRequest)
-
+        self.errormessage("Category name already exists")
         self.stopController(GC.controllerAddCategory)
 
     def test_addCategory_repeat(self):
@@ -190,7 +190,7 @@ class Test_Localhost:
         self.addCategory(
             (
             lambda:self.result(GC.badRequest),
-            lambda:self.errormessage(),
+            lambda:self.errormessage("Category name already exists",".microlight:nth-child(3) span:nth-child(5)"),
             lambda:self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-retrofitSelenium-addCategory-Repeat.png"),
             )
         )
