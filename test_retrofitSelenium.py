@@ -35,7 +35,7 @@ class Test_Localhost:
 
     def errormessage(self,text,position):
         self.waitForElementVisible((By.CSS_SELECTOR, position))
-        errormessage = self.driver.find_element(By.CSS_SELECTOR,position)
+        errormessage = self.driver.find_element(By.CSS_SELECTOR, position)
         assert errormessage.text == f"\"{text}\"" 
 
     def page_loaded(self):
@@ -181,7 +181,7 @@ class Test_Localhost:
         self.tryControllerWithArgument("{"+ f"\"name\":\"{name}\""+"}",GC.controllerbody)
         self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-retrofitSelenium-addCategory-invalid.png")
         self.result(GC.badRequest)
-        self.errormessage("Category name already exists")
+        self.errormessage("boyut '3' ile '20' arasında olmalı",".language-json > span:nth-child(13)")
         self.stopController(GC.controllerAddCategory)
 
     def test_addCategory_repeat(self):
@@ -219,3 +219,4 @@ class Test_Localhost:
         self.result(GC.ok)
         self.stopController(GC.controllerDeleteCategory)
         self.deleteCategories(())
+
