@@ -105,6 +105,8 @@ class Test_Localhost:
             functions = (functions,)
             return functions
         return functions
+    
+
     def makeIdNumber(self):
         self.deleteCategories(())
         self.addCategory(())
@@ -141,7 +143,7 @@ class Test_Localhost:
         for function in functions:
             function()
         self.stopController(GC.controllerGetCategories)
-
+#body ile mi çalışacak yoksa düz veri ile mi onu ayarla. Bu şekilde bunları ayırabilirsin
     
 
 
@@ -157,7 +159,7 @@ class Test_Localhost:
 
 
 
-#tests
+#tests Categories
     def test_deleteCategories(self):
         self.deleteCategories(
             (
@@ -219,4 +221,8 @@ class Test_Localhost:
         self.result(GC.ok)
         self.stopController(GC.controllerDeleteCategory)
         self.deleteCategories(())
+
+#tests Products
+
+
 
