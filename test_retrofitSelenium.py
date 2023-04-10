@@ -38,10 +38,6 @@ class Test_Localhost:
         errormessage = self.driver.find_element(By.CSS_SELECTOR, position)
         assert errormessage.text == f"\"{text}\"" 
 
-    def page_loaded(self):
-        old_page = self.driver.find_element_by_tag_name('html')
-        yield
-        pagewait(self.driver, 30).until(staleness_of(old_page))
     def getData(excelFileName,sheetName):
         excelFile = openpyxl.load_workbook("data/"+excelFileName)
         selectedSheet = excelFile[sheetName]
@@ -59,15 +55,17 @@ class Test_Localhost:
             else:
                 data.append(cell_value)
         return data
+    
     def result(self,resultNumer):
         self.waitForElementVisible((By.CSS_SELECTOR,".live-responses-table .response > .response-col_status"))
         assert self.driver.find_element(By.CSS_SELECTOR, ".live-responses-table .response > .response-col_status").text == resultNumer
+
     def waitForElementVisible(self,locator,timeout=10):
         WebDriverWait(self.driver,timeout).until(ec.visibility_of_element_located(locator))
 
-    def getId(self):#self.vars["id"]
-        self.vars["id"]= self.driver.find_element(By.CSS_SELECTOR, ".microlight:nth-child(3) span:nth-child(5)").text
-        self.idNumber= self.vars["id"]
+    def getCategoryId(self):#self.vars["id"]
+        self.vars["Categoryid"]= self.driver.find_element(By.CSS_SELECTOR, ".microlight:nth-child(3) span:nth-child(5)").text
+        self.categoryIdNumber= self.vars["Categoryid"]
         
     
         
@@ -79,89 +77,61 @@ class Test_Localhost:
         self.waitForElementVisible((By.CSS_SELECTOR, ".try-out__btn"))
         self.driver.find_element(By.CSS_SELECTOR, ".try-out__btn").click()
 
-    def tryControllerWithArgument(self,keys,field):
-        self.waitForElementVisible((By.CSS_SELECTOR, field))
-        bodyParam = self.driver.find_element(By.CSS_SELECTOR, field)
-        bodyParam.click()
-        bodyParam.clear()
-        bodyParam.send_keys(keys)
-        self.waitForElementVisible((By.CSS_SELECTOR, ".execute"))
-        self.driver.find_element(By.CSS_SELECTOR, ".execute").click()
-
-    def tryController(self):
-        self.waitForElementVisible((By.CSS_SELECTOR, ".execute"))
-        self.driver.find_element(By.CSS_SELECTOR, ".execute").click()
-
     def stopController(self,opblockSummaryControl):
         self.waitForElementVisible((By.CSS_SELECTOR, opblockSummaryControl))
         self.waitForElementVisible((By.CSS_SELECTOR, ".btn-clear"))
         self.waitForElementVisible((By.CSS_SELECTOR, ".btn"))
-
         self.driver.find_element(By.CSS_SELECTOR, ".btn-clear").click()
         self.driver.find_element(By.CSS_SELECTOR, ".btn").click()
         self.driver.find_element(By.CSS_SELECTOR, opblockSummaryControl).click()
+
     def callable(self, functions):
         if callable(functions):#eğer fonksiyon tekse fonksiyonu fonksiyon listesine çeviriyoruz
             functions = (functions,)
             return functions
         return functions
-    
 
-    def makeIdNumber(self):
-        self.deleteCategories(())
-        self.addCategory(())
-        self.getCategories((
-            lambda: self.getId()
+    def makeCategoryIdNumber(self):
+        self.runController(GC.deleteCategories,())
+        self.runControllerWithInput(GC.addCategory,GC.body,GC.addCategoryExample,())
+        self.runController(GC.getCategories,(
+            lambda: self.getCategoryId()
         ))
+    def write(self,writingArea,input):
+        self.waitForElementVisible((By.CSS_SELECTOR, writingArea))
+        bodyParam = self.driver.find_element(By.CSS_SELECTOR, writingArea)
+        bodyParam.click()
+        bodyParam.clear()
+        bodyParam.send_keys(input)
 
-
-
-
-
-
-#events
-    def deleteCategories(self,functions):
+#ekle getir gibi fonksiyonlarının yerine body kullanacak ya da kullanmayacak controller işlemini çağırıyoruz.
+    def runController(self,controller,functions):#hiç parametre almıyor
         functions = self.callable(functions)
-        self.startController(GC.controllerDeleteCategories)
-        self.tryController()
+        self.startController(controller)
+
+        self.waitForElementVisible((By.CSS_SELECTOR, ".execute"))
+        self.driver.find_element(By.CSS_SELECTOR, ".execute").click()
         for function in functions:
             function()
-        self.stopController(GC.controllerDeleteCategories)
 
-    def addCategory(self,functions):
-        functions = self.callable(functions)
-        self.startController(GC.controllerAddCategory)
-        self.tryControllerWithArgument("{\"name\":\"example\"}",GC.controllerbody)
-        for function in functions:
-            function()
-        self.stopController(GC.controllerAddCategory)
+        self.stopController(controller)
     
-    def getCategories(self,functions):
+    def runControllerWithInput(self,controller,writingArea,input,functions):#body ile parametre veriyor
         functions = self.callable(functions)
-        self.startController(GC.controllerGetCategories)
-        self.tryController()
-        for function in functions:
+        self.startController(controller)#GC.controllerAddCategory
+
+        self.write(writingArea,input)
+
+        self.waitForElementVisible((By.CSS_SELECTOR, ".execute"))
+        self.driver.find_element(By.CSS_SELECTOR, ".execute").click()
+        for function in functions:#ekran görüntüsü alma ve test başarısı işlemleri gibi fonksiyonlar
             function()
-        self.stopController(GC.controllerGetCategories)
-#body ile mi çalışacak yoksa düz veri ile mi onu ayarla. Bu şekilde bunları ayırabilirsin
-    
 
-
-
-
-
-
-
-
-
-
-
-
-
+        self.stopController(controller)
 
 #tests Categories
     def test_deleteCategories(self):
-        self.deleteCategories(
+        self.runController(GC.deleteCategories,
             (
             lambda: self.result(GC.ok),
             lambda: self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-retrofitSelenium-deleteCategories.png")
@@ -169,58 +139,62 @@ class Test_Localhost:
         )
 
     def test_addCategory(self):
-        self.deleteCategories(())
-        self.addCategory(
+        self.runController(GC.deleteCategories,())
+        self.runControllerWithInput(GC.addCategory,GC.body,GC.addCategoryExample,
             (
             lambda:self.result(GC.created),
             lambda:self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-retrofitSelenium-addCategory.png")
-            )
+            )    
         )
+        
     @pytest.mark.parametrize("name", getData("category_send_keys.xlsx","CreateCategoryRequest"))
     def test_addCategory_invalid(self,name):
-        self.deleteCategories(())
-        self.startController(GC.controllerAddCategory)
-        self.tryControllerWithArgument("{"+ f"\"name\":\"{name}\""+"}",GC.controllerbody)
-        self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-retrofitSelenium-addCategory-invalid.png")
-        self.result(GC.badRequest)
-        self.errormessage("boyut '3' ile '20' arasında olmalı",".language-json > span:nth-child(13)")
-        self.stopController(GC.controllerAddCategory)
+        self.runController(GC.deleteCategories,())
 
-    def test_addCategory_repeat(self):
-        self.deleteCategories(())
-        self.addCategory(())
-        self.addCategory(
+        invalidInput="{"+ f"\"name\":\"{name}\""+"}"
+
+        self.runControllerWithInput(GC.addCategory,GC.body,invalidInput,
             (
+            lambda:self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-retrofitSelenium-addCategory-invalid.png"),
             lambda:self.result(GC.badRequest),
-            lambda:self.errormessage("Category name already exists",".microlight:nth-child(3) span:nth-child(5)"),
-            lambda:self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-retrofitSelenium-addCategory-Repeat.png"),
+            lambda:self.errormessage("boyut '3' ile '20' arasında olmalı",".language-json > span:nth-child(13)")#hata mesajını excel tablosundan çekmeyi unutma
             )
         )
-        self.deleteCategories(())
+
+    def test_addCategory_repeat(self):
+        self.runController(GC.deleteCategories,())
+        self.runControllerWithInput(GC.addCategory,GC.body,GC.addCategoryExample,())
+        self.runControllerWithInput(GC.addCategory,GC.body,GC.addCategoryExample,(
+            lambda:self.result(GC.badRequest),
+            lambda:self.errormessage("Category name already exists",".microlight:nth-child(3) span:nth-child(5)"),
+            lambda:self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-retrofitSelenium-addCategory-Repeat.png")
+        ))
+        self.runController(GC.deleteCategories,())
 
     def test_getCategories(self):
-        self.getCategories((
+        self.runController(GC.getCategories,(
             lambda:self.result(GC.ok),
             lambda:self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-retrofitSelenium-getCategories.png")
         ))
+
     #@pytest.mark.skip()
     def test_updateCategory(self):
-        self.makeIdNumber()
-        self.startController(GC.controllerUpdateCategory)
-        self.tryControllerWithArgument("{"+f"\"id\": {self.idNumber},\"name\": \"example\""+"}",GC.controllerbody)
-        self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-retrofitSelenium-updateCategories.png")
-        self.result(GC.ok)
-        self.stopController(GC.controllerUpdateCategory)
-        self.deleteCategories(())
+        self.makeCategoryIdNumber()
+        updateInput="{"+f"\"id\": {self.categoryIdNumber},\"name\": \"example\""+"}"
+        self.runControllerWithInput(GC.updateCategory,GC.body,updateInput,(
+            lambda:self.result(GC.ok),
+            lambda:self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-retrofitSelenium-updateCategories.png")
+        ))
+        self.runController(GC.deleteCategories,())
     
     def test_deleteCategory(self):
-        self.makeIdNumber()
-        self.startController(GC.controllerDeleteCategory)
-        self.tryControllerWithArgument(self.idNumber,GC.controllerparameters)
-        self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-retrofitSelenium-updateCategories.png")
-        self.result(GC.ok)
-        self.stopController(GC.controllerDeleteCategory)
-        self.deleteCategories(())
+        self.makeCategoryIdNumber()
+
+        self.runControllerWithInput(GC.deleteCategory,GC.parameters,self.categoryIdNumber,(
+            lambda:self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-retrofitSelenium-updateCategories.png"),
+            lambda:self.result(GC.ok)
+        ))
+        self.runController(GC.deleteCategories,())
 
 #tests Products
 

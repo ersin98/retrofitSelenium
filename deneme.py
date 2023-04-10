@@ -1,32 +1,23 @@
-class Someting:
-    def __init__(self) -> None:
+class Deneme():
+    def something(self,a):
         pass
-    def start(self):
-        print("hello")
-    def stop(self):
-        print("by by")
 
-    def howAreYou(self,time):
-        print(f"How are you {time}")
-    def book(self,name):
-        print(f"i like your {name}")
-    def hate(self):
-        print("i hate you")
+    def otherthings(self,b):
+        pass
 
-    def say(self,functions):
-        self.start()
-        for function in functions:
-            function()
-        self.stop()
 
-    def do(self):
-        time = "today"
-        self.say(
-            (
-            lambda:self.howAreYou(f"{time}"),
-            lambda:self.book("book"))
-            )
-    def dont(self):
-        self.say(self.hate)
+    def runController(self,x,y):
+        self.something(x)
+        self.otherthings(y)
 
-Someting().do()
+    def runControllerWithInput(self,x,writingArea,input,y):
+        self.something(x)
+        self.write(writingArea,input)
+        self.otherthings(y)
+
+
+    def runController(self,y,x,writingArea=None,input=None): 
+        self.something(x) 
+        if writingArea and input: 
+            self.write(writingArea,input) 
+        self.otherthings(y)

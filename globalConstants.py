@@ -5,13 +5,18 @@ class GlobalConstants():
     created="201"
     undocumented="500"
 
-    controllerbody=".body-param__text"
-    controllerparameters=".parameters-col_description > input"
+    #writingArea
+    body=".body-param__text"
+    parameters=".parameters-col_description > input"
+    
+    #controller
+    addCategory="#operations-categories-controller-addCategory .opblock-summary-control"
+    getCategories="#operations-categories-controller-getAll_1 .opblock-summary-control"
+    deleteCategories="#operations-categories-controller-deleteAll_1 .opblock-summary-control"
+    updateCategory="#operations-categories-controller-updateCategory .opblock-summary-control"
+    deleteCategory="#operations-categories-controller-deleteCategory .opblock-summary-path span"
+    
+    
 
-    controllerAddCategory="#operations-categories-controller-addCategory .opblock-summary-control"
-    controllerGetCategories="#operations-categories-controller-getAll_1 .opblock-summary-control"
-    controllerDeleteCategories="#operations-categories-controller-deleteAll_1 .opblock-summary-control"
-    controllerUpdateCategory="#operations-categories-controller-updateCategory .opblock-summary-control"
-    controllerDeleteCategory="#operations-categories-controller-deleteCategory .opblock-summary-path span"
-    
-    
+
+    addCategoryExample="{\"name\":\"example\"}"
