@@ -64,10 +64,12 @@ class Test_Localhost:
         WebDriverWait(self.driver,timeout).until(ec.visibility_of_element_located(locator))
 
     def getCategoryId(self):#self.vars["id"]
-        self.vars["Categoryid"]= self.driver.find_element(By.CSS_SELECTOR, ".microlight:nth-child(3) span:nth-child(5)").text
-        self.categoryIdNumber= self.vars["Categoryid"]
+        self.vars["categoryId"]= self.driver.find_element(By.CSS_SELECTOR, ".microlight:nth-child(3) span:nth-child(5)").text
+        self.categoryIdNumber= self.vars["categoryId"]
         
-    
+    def getProductId(self):
+        self.vars["ProductId"]= self.driver.find_element(By.CSS_SELECTOR, ".microlight:nth-child(3) span:nth-child(10)").text
+        self.productIdNumber= self.vars["ProductId"]    
         
 
 #Controller
@@ -97,6 +99,15 @@ class Test_Localhost:
         self.runController(GC.getCategories,(
             lambda: self.getCategoryId()
         ))
+
+    def makeProductIdNumber(self):
+        self.runController(GC.deleteAll,())
+        self.makeCategoryIdNumber()
+        addProductExaple="{\"description\":\"example\",\"image\":\"example\",\"price\":9.99,\"title\":\"example\","+f"\"categoryId\":{self.categoryIdNumber}"+"}"
+        self.runControllerWithInput(GC.addProduct,GC.body,addProductExaple,())
+        self.runController(GC.getAll,(
+            lambda: self.getProductId()
+        ))
     def write(self,writingArea,input):
         self.waitForElementVisible((By.CSS_SELECTOR, writingArea))
         bodyParam = self.driver.find_element(By.CSS_SELECTOR, writingArea)
@@ -111,6 +122,7 @@ class Test_Localhost:
 
         self.waitForElementVisible((By.CSS_SELECTOR, ".execute"))
         self.driver.find_element(By.CSS_SELECTOR, ".execute").click()
+        self.waitForElementVisible((By.CSS_SELECTOR, ".btn-clear"))
         for function in functions:
             function()
 
@@ -124,9 +136,9 @@ class Test_Localhost:
 
         self.waitForElementVisible((By.CSS_SELECTOR, ".execute"))
         self.driver.find_element(By.CSS_SELECTOR, ".execute").click()
+        self.waitForElementVisible((By.CSS_SELECTOR, ".btn-clear"))
         for function in functions:#ekran görüntüsü alma ve test başarısı işlemleri gibi fonksiyonlar
             function()
-
         self.stopController(controller)
 
 #tests Categories
@@ -191,12 +203,59 @@ class Test_Localhost:
         self.makeCategoryIdNumber()
 
         self.runControllerWithInput(GC.deleteCategory,GC.parameters,self.categoryIdNumber,(
-            lambda:self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-retrofitSelenium-updateCategories.png"),
+            lambda:self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-retrofitSelenium-deleteCategory.png"),
             lambda:self.result(GC.ok)
         ))
         self.runController(GC.deleteCategories,())
 
 #tests Products
+    def test_getAll(self):
+        self.runController(GC.getAll,(
+            lambda:self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-retrofitSelenium-getAll.png"),
+            lambda:self.result(GC.ok)
+        ))
 
+    def test_deleteAll(self):
+        self.runController(GC.deleteAll,(
+            lambda:self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-retrofitSelenium-getAll.png"),
+            lambda:self.result(GC.ok)
+        ))
+    
+    def test_updateProduct(self):
+        self.makeProductIdNumber()
+        updateInput="{\"description\":\"example1\",\"id\":"+ self.productIdNumber +",\"image\":\"example1\",\"price\":9.99,\"title\":\"example1\","+f"\"categoryId\":{self.categoryIdNumber}"+"}"
+        self.runControllerWithInput(GC.updateProduct,GC.body,updateInput,(
+            lambda:self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-retrofitSelenium-updateProduct.png"),
+            lambda:self.result(GC.ok)
+        ))
+    def test_addProduct(self):
+        self.runController(GC.deleteAll,())
+        self.makeCategoryIdNumber()
+        addProductExaple="{\"description\":\"example\",\"image\":\"example\",\"price\":9.99,\"title\":\"example\","+f"\"categoryId\":{self.categoryIdNumber}"+"}"
+        self.runControllerWithInput(GC.addProduct,GC.body,addProductExaple,(
+            lambda:self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-retrofitSelenium-addProduct.png"),
+            lambda:self.result(GC.created)
+        ))
 
+    def test_getByQueryProductResponse(self):
+        self.runController(GC.deleteAll,())
 
+        self.runControllerWithInput(GC.getByQueryProductResponse,GC.parameters,"example",(
+            lambda:self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-retrofitSelenium-getByQueryProductResponse.png"),
+            lambda:self.result(GC.ok) 
+        ))
+
+    def test_getByCategoryProductResponse(self):
+        self.runController(GC.deleteAll,())
+        self.makeCategoryIdNumber()
+        self.runControllerWithInput(GC.getByCategoryProductResponse,GC.parameters,self.categoryIdNumber,(
+            lambda:self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-retrofitSelenium-getByCategoryProductResponse.png"),
+            lambda:self.result(GC.ok) 
+        ))
+    def test_deleteProduct(self):
+        self.runController(GC.deleteAll,())
+        self.makeProductIdNumber()
+        self.runControllerWithInput(GC.deleteProduct,GC.parameters,self.productIdNumber,(
+            lambda:self.driver.save_screenshot(f"{self.folderPath}/ {self.testTime}-test-retrofitSelenium-deleteProduct.png"),
+            lambda:self.result(GC.ok) 
+        ))
